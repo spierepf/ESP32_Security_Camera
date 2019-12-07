@@ -142,8 +142,11 @@ void setup() {
     Serial.println("No SD Card attached");
     return;
   }
-    
-  take_photo();
+
+  for(int i = 0; i < 3; ++i) {
+    take_photo();
+    delay(5000);
+  }
     
   // Turns off the ESP32-CAM white on-board LED (flash) connected to GPIO 4
   pinMode(4, OUTPUT);
