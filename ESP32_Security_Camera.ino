@@ -29,7 +29,7 @@
 #include <EEPROM.h>            // read and write from flash memory
 
 // define the number of bytes you want to access
-#define EEPROM_SIZE 1
+#define EEPROM_SIZE 4
 
 // Pin definition for CAMERA_MODEL_AI_THINKER
 #define PWDN_GPIO_NUM     32
@@ -50,7 +50,25 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-int pictureNumber = 0;
+template <class T> int EEPROM_writeAnything(int ee, const T& value)
+{
+    const byte* p = (const byte*)(const void*)&value;
+    unsigned int i;
+    for (i = 0; i < sizeof(value); i++)
+          EEPROM.write(ee++, *p++);
+    return i;
+}
+
+template <class T> int EEPROM_readAnything(int ee, T& value)
+{
+    byte* p = (byte*)(void*)&value;
+    unsigned int i;
+    for (i = 0; i < sizeof(value); i++)
+          *p++ = EEPROM.read(ee++);
+    return i;
+}
+
+uint32_t pictureNumber = 0;
 
 void take_photo() {
   camera_fb_t * fb = NULL;
@@ -62,8 +80,10 @@ void take_photo() {
     return;
   }
   // initialize EEPROM with predefined size
-  EEPROM.begin(EEPROM_SIZE);
-  pictureNumber = EEPROM.read(0) + 1;
+  EEPROM.begin(sizeof(pictureNumber));
+  pictureNumber = 0;
+  EEPROM_readAnything(0, pictureNumber);
+  pictureNumber++;
 
   // Path where new picture will be saved in SD Card
   String path = "/picture" + String(pictureNumber) +".jpg";
@@ -78,7 +98,7 @@ void take_photo() {
   else {
     file.write(fb->buf, fb->len); // payload (image), payload length
     Serial.printf("Saved file to path: %s\n", path.c_str());
-    EEPROM.write(0, pictureNumber);
+    EEPROM_writeAnything(0, pictureNumber);
     EEPROM.commit();
   }
   file.close();
@@ -154,9 +174,7 @@ void setup() {
   digitalWrite(4, LOW);
   rtc_gpio_hold_en(GPIO_NUM_4);
   
-  delay(2000);
   Serial.println("Going to sleep now");
-  delay(2000);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
   esp_deep_sleep_start();
   Serial.println("This will never be printed");
