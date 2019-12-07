@@ -143,7 +143,8 @@ void setup() {
     return;
   }
 
-  for(int i = 0; i < 3; ++i) {
+  pinMode(GPIO_NUM_13, INPUT);
+  while(LOW == digitalRead(GPIO_NUM_13)) {
     take_photo();
     delay(5000);
   }
