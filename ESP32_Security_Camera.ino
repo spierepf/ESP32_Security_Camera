@@ -132,7 +132,7 @@ void setup() {
   }
   
   //Serial.println("Starting SD Card");
-  if(!SD_MMC.begin()){
+  if(!SD_MMC.begin("/sdcard", true)) {
     Serial.println("SD Card Mount Failed");
     return;
   }
@@ -156,6 +156,7 @@ void setup() {
   delay(2000);
   Serial.println("Going to sleep now");
   delay(2000);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
   esp_deep_sleep_start();
   Serial.println("This will never be printed");
 }
